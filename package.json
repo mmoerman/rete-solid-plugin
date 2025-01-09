@@ -1,0 +1,31 @@
+{
+  "name": "@ubifile/rete-solidjs-plugin",
+  "version": "0.1.8",
+  "description": "",
+  "scripts": {
+    "build": "rm -rf dist && rete build -c rete.config.ts",
+    "doc": "rete doc --entries src/index.tsx",
+    "lint": "rete lint"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "solid-element": "^1.9.1",
+    "solid-js": "^1.9.3"
+  },
+  "peerDependencies": {
+    "rete": "^2.0.0",
+    "rete-area-plugin": "^2.0.0",
+    "rete-render-utils": "^2.0.0"
+  },
+  "devDependencies": {
+    "@babel/preset-env": "^7.26.0",
+    "@babel/preset-typescript": "^7.26.0",
+    "babel-preset-solid": "^1.9.3",
+    "globals": "^15.9.0",
+    "rete": "^2.0.0",
+    "rete-area-plugin": "^2.0.0",
+    "rete-cli": "~2.0.1",
+    "rete-render-utils": "^2.0.2"
+  }
+}

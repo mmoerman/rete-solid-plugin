@@ -1,0 +1,6 @@
+# THe usual suspects node modules and distribution directory
+node_modules
+dist
+
+# Mac's annoying DS_Store
+.DS_Store
