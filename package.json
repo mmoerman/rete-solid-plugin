@@ -1,6 +1,6 @@
 {
   "name": "@ubifile/rete-solidjs-plugin",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "",
   "scripts": {
     "build": "rm -rf dist && rete build -c rete.config.ts",
@@ -11,7 +11,8 @@
   "license": "MIT",
   "dependencies": {
     "solid-element": "^1.9.1",
-    "solid-js": "^1.9.3"
+    "solid-js": "^1.9.3",
+    "solid-styled-components": "^0.28.5"
   },
   "peerDependencies": {
     "rete": "^2.0.0",

@@ -1,45 +1,38 @@
-import { createSignal } from "solid-js";
+import { Component } from 'solid-js'
+import { styled } from 'solid-styled-components'
+import { ComponentType } from '../types'
 
-interface SearchElementProps {
-  onChange?: (event: InputEvent) => void;
-  value?: string;
+const SearchInput = styled('input')`
+  color: white;
+  padding: 1px 8px;
+  border: 1px solid white;
+  border-radius: 10px;
+  font-size: 16px;
+  font-family: serif;
+  width: 100%;
+  box-sizing: border-box;
+  background: transparent;
+`
+
+type SearchProps = {
+    value: string
+    onChange: (value: string) => void
+    component?: ComponentType
 }
 
-export const SearchElement = (props: SearchElementProps) => {
-  const [text, setText] = createSignal(props.value || "");
+export const Search: Component<SearchProps> = (props) => {
+    const SearchComponent = props.component || SearchInput
 
-  const handleInput = (event: InputEvent) => {
-    const newText = (event.target as HTMLInputElement).value;
-    setText(newText);
-
-    if (props.onChange) {
-      // Create a new custom InputEvent like in the Lit version
-      const newEvent = new InputEvent("change");
-      Object.defineProperty(newEvent, "target", {
-        writable: false,
-        value: event.target,
-      });
-      props.onChange(newEvent);
-    }
-  };
-
-  return (
-    <input
-      class="search"
-      value={text()}
-      onInput={handleInput}
-      data-testid="context-menu-search-input"
-      style={{
-        "color": "white",
-        "padding": "1px 8px",
-        "border": "1px solid white",
-        "border-radius": "10px",
-        "font-size": "16px",
-        "font-family": "serif",
-        "width": "100%",
-        "box-sizing": "border-box",
-        "background": "transparent",
-      }}
-    />
-  );
-};
+    return (
+        <SearchComponent
+            value={props.value}
+            onInput={(e: InputEvent) => {
+                props.onChange((e.target as HTMLInputElement).value)
+            }}
+            onPointerDown={(e: PointerEvent) => {
+                e.stopPropagation()
+            }}
+            data-testid="context-menu-search-input"
+        />
+    )
+}

@@ -1,67 +1,60 @@
-import { Component, onCleanup, onMount } from 'solid-js';
-import { GetPointer, useDrag } from '../../../shared/drag';
-import { Position } from '../types';
+import { Component } from 'solid-js'
+import { styled } from 'solid-styled-components'
+import { useDrag } from '../../../shared/drag'
+import { Position } from '../../../types'
+import { PinType } from '../types'
+const pinSize = 20
 
-const pinSize = 20;
+const StyledPin = styled('div')<{ selected?: boolean }>`
+  width: ${String(pinSize)}px;
+  height: ${String(pinSize)}px;
+  box-sizing: border-box;
+  background: ${props => props.selected
+    ? '#ffd92c'
+    : 'steelblue'};
+  border: 2px solid white;
+  border-radius: ${String(pinSize)}px;
+`
 
-type PinProps = {
-  position: Position;
-  selected: boolean;
-  getPointer: GetPointer;
-  onDown?: (event: PointerEvent) => void;
-  onMenu?: (event: MouseEvent) => void;
-  onTranslate?: (dx: number, dy: number) => void;
-};
+type PinProps = PinType & {
+    contextMenu: () => void
+    translate: (dx: number, dy: number) => void
+    pointerdown: () => void
+    pointer: () => Position
+}
 
 export const Pin: Component<PinProps> = (props) => {
-  let drag: null | ReturnType<typeof useDrag> = null;
+    const drag = useDrag(
+        (dx: number, dy: number) => {
+            props.translate(dx, dy)
+        },
+        props.pointer
+    )
 
-  const style = () => ({});
+    const handlePointerDown = (e: PointerEvent) => {
+        e.stopPropagation()
+        e.preventDefault()
+        drag.start(e)
+        props.pointerdown()
+    }
 
-  const onPointerDown = (event: PointerEvent) => {
-    event.stopPropagation();
-    event.preventDefault();
-    drag?.start(event);
-    props.onDown?.(event);
-  };
+    const handleContextMenu = (e: MouseEvent) => {
+        e.stopPropagation()
+        e.preventDefault()
+        props.contextMenu()
+    }
 
-  const onContextMenu = (event: MouseEvent) => {
-    event.stopPropagation();
-    event.preventDefault();
-    props.onMenu?.(event);
-  };
-
-  const onDrag = (dx: number, dy: number) => {
-    props.onTranslate?.(dx, dy);
-  };
-
-  // Initialize drag on mount
-  onMount(() => {
-    drag = useDrag(onDrag, props.getPointer);
-  });
-
-  // Cleanup drag instance on unmount
-  onCleanup(() => {
-    drag = null;
-  });
-
-  return (
-    <div
-      class="pin"
-      style={{
-        "top": `${props.position.y - pinSize / 2}px`,
-        "left": `${props.position.x - pinSize / 2}px`,
-        "width": `${pinSize}px`,
-        "height": `${pinSize}px`,
-        "box-sizing": 'border-box',
-        "background": props.selected ? '#ffd92c' : 'steelblue',
-        "border": '2px solid white',
-        "border-radius": `${pinSize}px`,
-        "position": 'absolute',
-      }}
-      onPointerDown={onPointerDown}
-      onContextMenu={onContextMenu}
-      data-testid="pin"
-    ></div>
-  );
-};
+    return (
+        <StyledPin
+            selected={props.selected}
+            onPointerDown={handlePointerDown}
+            onContextMenu={handleContextMenu}
+            style={{
+                position: 'absolute',
+                top: `${props.position.y - pinSize / 2}px`,
+                left: `${props.position.x - pinSize / 2}px`
+            }}
+            data-testid="pin"
+        />
+    )
+}

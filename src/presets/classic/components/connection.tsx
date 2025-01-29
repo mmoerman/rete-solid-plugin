@@ -1,33 +1,40 @@
-import { Component } from "solid-js";
-import { Position } from "../../../types";
+import { Component, Show } from 'solid-js'
+import { styled } from 'solid-styled-components'
+import { ClassicScheme } from '../types'
+import { useConnection } from './ConnectionWrapper'
 
-interface ConnectionProps {
-  start: Position;
-  end: Position;
-  path: string;
+const StyledSvg = styled('svg')`
+    overflow: visible !important;
+    position: absolute;
+    pointer-events: none;
+    width: 9999px;
+    height: 9999px;
+`
+
+const StyledPath = styled('path')<{ styles?: (props: any) => any }>`
+    fill: none;
+    stroke-width: 5px;
+    stroke: steelblue;
+    pointer-events: auto;
+    ${props => props.styles?.(props)}
+`
+
+type ConnectionProps = {
+    data: ClassicScheme['Connection'] & { isLoop?: boolean }
+    styles?: () => any
 }
 
-export const ConnectionElement: Component<ConnectionProps> = (props) => {
-  return (
-    <svg
-      data-testid="connection"
-      style={{
-        "overflow": "visible",
-        "position": "absolute",
-        "pointer-events": "none",
-        "width": "9999px",
-        "height": "9999px",
-      }}
-    >
-      <path
-        d={props.path}
-        style={{
-          "fill": "none",
-          "stroke-width": "5px",
-          "stroke": "steelblue",
-          "pointer-events": "auto",
-        }}
-      ></path>
-    </svg>
-  );
-};
+export const Connection: Component<ConnectionProps> = (props) => {
+    const { path } = useConnection()
+
+    return (
+        <Show when={path}>
+            <StyledSvg data-testid="connection">
+                <StyledPath
+                    styles={props.styles}
+                    d={path?.()}
+                />
+            </StyledSvg>
+        </Show>
+    )
+}

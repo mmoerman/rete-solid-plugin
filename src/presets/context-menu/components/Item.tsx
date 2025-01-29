@@ -1,103 +1,88 @@
-import { createSignal, For, onCleanup, ParentProps } from "solid-js";
-import { debounce } from "../utils/debounce";
+import {Component, createSignal, Show, createUniqueId, ParentProps, JSX} from "solid-js";
+import { css, styled } from "solid-styled-components";
+import { useDebounce } from "../hooks";
+import { CommonStyle } from "../styles";
+import { Customize, Item } from "../types";
+import { $width } from "../vars";
 
-interface ItemElementProps extends ParentProps {
-  subitems?: ItemElementProps[];
-  delay?: number;
-  onSelect?: (event: InputEvent) => void;
-  onHide?: () => void;
-  key?: string;
-  label?: string;
-  handler?: () => void;
+// Styled Components using solid-styled-components
+export const ItemStyle = styled(CommonStyle)<{ hasSubitems?: boolean }>`
+  ${(props) =>
+    props.hasSubitems ?
+    css`
+      &:after {
+        content: "►";
+        position: absolute;
+        opacity: 0.6;
+        right: 5px;
+        top: 5px;
+      }
+    ` : ''}
+`;
+
+export const SubitemStyles = styled("div")`
+  position: absolute;
+  top: 0;
+  left: 100%;
+  width: ${String($width)}px;
+`;
+
+interface ItemStyleProps extends ParentProps {
+    hasSubitems?: boolean;
+    onPointerOver?: () => void;
+    onPointerLeave?: () => void;
+    onClick?: (e: MouseEvent) => void;
 }
 
-export const ItemElement = (props: ItemElementProps) => {
+interface ItemProps extends ParentProps {
+  data: Item;
+  delay: number;
+  hide(): void;
+  components?: Pick<Customize, "item" | "subitems">;
+}
+
+export const ItemElement: Component<ItemProps> = (props) => {
   const [visibleSubitems, setVisibleSubitems] = createSignal(false);
-  const delay = props.delay || 0;
+  const setInvisible = () => setVisibleSubitems(false);
+  const [hide, cancelHide] = useDebounce(setInvisible, props.delay);
 
-  // Debounced function to hide subitems
-  const hide = debounce(delay, () => setVisibleSubitems(false));
-
-  // Cleanup on component unmount
-  onCleanup(() => hide.cancel());
-
-  // Event handlers
-  const handleClick = (event: MouseEvent) => {
-    event.stopPropagation();
-    props.onSelect?.(event as unknown as InputEvent);
-    props.onHide?.();
-  };
-
-  const stopEvent = (event: Event) => {
-    event.stopPropagation();
-  };
-
-  const handlePointerOver = () => {
-    hide.cancel();
-    setVisibleSubitems(true);
-  };
-
-  const handlePointerLeave = () => {
-    hide.call();
-  };
-
-  const handleHide = () => {
-    props.onHide?.();
-  };
+  // Components can be customized via props
+  const ItemComponent =
+      props.components?.item?.(props.data) || ((props: ItemStyleProps) => <ItemStyle {...props} />);
+  const Subitems =
+      props.components?.subitems?.(props.data) || SubitemStyles;
 
   return (
-    <div
-      classList={{hasSubitems: !!props.subitems && props.subitems.length > 0}}
-      data-testid="context-menu-item"
-    >
-      <div
-        class="content"
-        onClick={handleClick}
-        onWheel={stopEvent}
-        onPointerOver={handlePointerOver}
-        onPointerLeave={handlePointerLeave}
-        onPointerDown={stopEvent}
+      <ItemComponent
+          onClick={(e: MouseEvent) => {
+            e.stopPropagation();
+            props.data.handler();
+            props.hide();
+          }}
+          hasSubitems={Boolean(props.data.subitems)}
+          onPointerOver={() => {
+            cancelHide();
+            setVisibleSubitems(true);
+          }}
+          onPointerLeave={() => {
+            if (hide) hide();
+          }}
       >
-        <div>{props.children}</div>
-        {props.subitems && visibleSubitems() && (
-          <div class="subitems">
-            <For each={props.subitems}>
-              {(item) => (
+        {props.children}
+        <Show when={props.data.subitems && visibleSubitems()}>
+          <Subitems>
+            {props.data.subitems?.map((item) => (
                 <ItemElement
-                  key={item.key}
-                  delay={delay}
-                  subitems={item.subitems}
-                  onSelect={item.handler}
-                  onHide={handleHide}
+                    data={item}
+                    delay={props.delay}
+                    hide={props.hide}
+                    components={props.components}
                 >
                   {item.label}
                 </ItemElement>
-              )}
-            </For>
-          </div>
-        )}
-      </div>
-      <style>
-        {`
-          .content {
-            padding: 4px;
-          }
-          :global(.hasSubitems)::after {
-            content: '►';
-            position: absolute;
-            opacity: 0.6;
-            right: 5px;
-            top: 5px;
-            pointer-events: none;
-          }
-          .subitems {
-            position: absolute;
-            top: 0;
-            left: 100%;
-            width: var(--menu-width);
-          }
-        `}
-      </style>
-    </div>
+            ))}
+          </Subitems>
+        </Show>
+      </ItemComponent>
   );
 };

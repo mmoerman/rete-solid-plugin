@@ -1,15 +1,12 @@
-import { BaseSchemes } from 'rete';
-import { BaseAreaPlugin } from 'rete-area-plugin';
-import { RenderPreset } from '../types';
-import { Pin } from './components/Pin';
-import { Pins } from './components/Pins';
-import { PinsRender } from './types';
-import { customElement } from "solid-element";
+import {For} from 'solid-js'
+import {BaseSchemes} from 'rete'
+import {BaseAreaPlugin} from 'rete-area-plugin'
+import {Position} from '../../types'
+import {RenderPreset} from '../types'
+import {Pin} from './components/Pin'
+import {PinData, PinsRender} from './types'
 
-customElement('rete-pins', Pins);
-customElement('rete-pin', Pin);
-
-type Props = {
+type PresetProps = {
   translate?: (id: string, dx: number, dy: number) => void
   contextMenu?: (id: string) => void
   pointerdown?: (id: string) => void
@@ -18,32 +15,33 @@ type Props = {
 /**
  * Preset for rendering pins.
  */
-export function setup<Schemes extends BaseSchemes, K extends PinsRender>(props?: Props): RenderPreset<Schemes, K> {
+export function setup<Schemes extends BaseSchemes, K extends PinsRender>(props?: PresetProps): RenderPreset<Schemes, K> {
+  function renderPins(data: PinData, pointer: () => Position) {
+    return (
+        <For each={data.pins}>
+          {pin => (
+              <Pin
+                  {...pin}
+                  contextMenu={() => props?.contextMenu?.(pin.id)}
+                  translate={(dx, dy) => props?.translate?.(pin.id, dx, dy)}
+                  pointerdown={() => props?.pointerdown?.(pin.id)}
+                  pointer={pointer}
+              />
+          )}
+        </For>
+    );
+  }
+
   return {
-    update(context) {
-      if (context.data.type === 'reroute-pins') {
-        return {
-          menu: props?.contextMenu || (() => null),
-          translate: props?.translate || (() => null),
-          down: props?.pointerdown || (() => null),
-          pins: context.data.data.pins
-        };
-      }
-    },
     render(context, plugin) {
       if (context.data.type === 'reroute-pins') {
-        const area = plugin.parentScope<BaseAreaPlugin<Schemes, PinsRender>>(BaseAreaPlugin);
+        return () => {
+          const data = context.data
+          const area = plugin.parentScope<BaseAreaPlugin<Schemes, PinsRender>>(BaseAreaPlugin)
 
-        return (
-          <Pins
-            onMenu={props?.contextMenu || (() => null)}
-            onTranslate={props?.translate || (() => null)}
-            onDown={props?.pointerdown || (() => null)}
-            getPointer={() => area.area.pointer}
-            pins={context.data.data.pins}
-          />
-        );
+          return renderPins(data.data, () => area.area.pointer)
+        }
       }
     }
-  };
+  }
 }

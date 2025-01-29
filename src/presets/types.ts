@@ -1,14 +1,9 @@
 import { BaseSchemes } from 'rete';
+import { JSX } from 'solid-js';
 
-import { SolidJSPlugin } from '..';
-import { JSXElement } from "solid-js";
+import { SolidPlugin } from '..';
 
 export type RenderPreset<Schemes extends BaseSchemes, T> = {
-  attach?: (plugin: SolidJSPlugin<Schemes, T>) => void
-  update: (context: Extract<T, {
-    type: 'render'
-  }>, plugin: SolidJSPlugin<Schemes, T>) => Record<string, unknown> | null | undefined
-  render: (context: Extract<T, {
-    type: 'render'
-  }>, plugin: SolidJSPlugin<Schemes, T>) => JSXElement | null | undefined
+  attach?: (plugin: SolidPlugin<Schemes, T>) => void
+  render: (context: Extract<T, { type: 'render' }>, plugin: SolidPlugin<Schemes, T>) => (() => JSX.Element) | null | undefined
 }

@@ -1,50 +1,39 @@
-import { BaseSchemes } from 'rete';
-import { RenderPreset } from '../types';
-import { BlockElement } from './components/Block';
-import { ItemElement } from './components/Item';
-import { MenuElement } from './components/Menu';
-import { SearchElement } from './components/Search';
-import { ContextMenuRender } from './types';
-import { customElement } from "solid-element";
-import { JSXElement } from "solid-js";
+import { BaseSchemes } from 'rete'
+import { RenderPreset } from '../types'
+import { Menu } from './components/Menu'
+import { ContextMenuRender, Customize } from './types'
 
-customElement('rete-context-menu', MenuElement);
-customElement('rete-context-menu-block', BlockElement);
-customElement('rete-context-menu-search', SearchElement);
-customElement('rete-context-menu-item', ItemElement);
+// Re-exports from components
+export { ItemStyle as Item, SubitemStyles as Subitems } from './components/Item'
+export { Menu } from './components/Menu'
+export { Search } from './components/Search'
+export { CommonStyle as Common } from './styles'
 
-/**
- * Preset for rendering context menu.
- */
-export function setup<Schemes extends BaseSchemes, K extends ContextMenuRender>(props?: {
+type Props = {
   delay?: number
-}): RenderPreset<Schemes, K> {
+  customize?: Customize
+}
+
+export function setup<Schemes extends BaseSchemes, K extends ContextMenuRender>(props?: Props): RenderPreset<Schemes, K> {
   const delay = typeof props?.delay === 'undefined'
-    ? 1000
-    : props.delay;
+      ? 1000
+      : props.delay
 
   return {
-    update(context) {
+    render(context, _) {
       if (context.data.type === 'contextmenu') {
-        return {
-          items: context.data.items,
-          delay,
-          searchBar: context.data.searchBar,
-          onHide: context.data.onHide
-        };
-      }
-    },
-    render(context): JSXElement {
-      if (context.data.type === 'contextmenu') {
-        return (
-          <MenuElement
-            items={context.data.items}
-            delay={delay}
-            searchBar={context.data.searchBar}
-            onHide={context.data.onHide}
-          ></MenuElement>
-        );
+        return () => {
+          return (
+              <Menu
+                  items={context.data.items}
+                  delay={delay}
+                  searchBar={context.data.searchBar}
+                  onHide={context.data.onHide}
+                  components={props?.customize}
+              />
+          );
+        }
       }
     }
-  };
+  }
 }

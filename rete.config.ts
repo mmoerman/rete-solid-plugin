@@ -2,7 +2,7 @@ import { ReteOptions } from 'rete-cli';
 
 export default <ReteOptions>{
   input: 'src/index.tsx',
-  name: 'SolidJSPlugin',
+  name: 'SolidPlugin',
   globals: {
       'rete': 'Rete',
       'rete-area-plugin': 'ReteAreaPlugin',

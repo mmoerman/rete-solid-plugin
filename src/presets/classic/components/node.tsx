@@ -1,144 +1,177 @@
-import { For, JSX, mergeProps, Show } from "solid-js";
-import { ClassicScheme, RenderEmit } from "../types";
-import { RefElement } from "./refs/ref";
+import {Component, For} from 'solid-js'
+import {styled} from 'solid-styled-components'
+import {ClassicScheme, RenderEmit} from '../types'
+import {$nodecolor, $nodecolorselected, $nodewidth, $socketmargin, $socketsize} from '../vars'
+import {RefControl} from './refs/RefControl'
+import {RefSocket} from './refs/RefSocket'
 
-interface NodeExtraData {
-  width?: number;
-  height?: number;
+type NodeExtraData = {
+  width?: number
+  height?: number
 }
 
-interface NodeElementProps<S extends ClassicScheme> {
-  width?: number | null;
-  height?: number | null;
-  data: ClassicScheme["Node"] & NodeExtraData;
-  styles?: (props: any) => JSX.CSSProperties | string;
-  emit?: RenderEmit<S>;
+export const NodeStyles = styled('div')<NodeExtraData & { selected: boolean, styles?: (props: any) => any }>`
+    background: ${props => props.selected ? $nodecolorselected : $nodecolor};
+    border-color: ${props => props.selected ? '#e3c000' : '#4e58bf'};
+    border-style: solid;
+    border-width: 2px;
+    border-radius: 10px;
+    cursor: pointer;
+    box-sizing: border-box;
+    width: ${props => Number.isFinite(props.width)
+    ? `${props.width}px`
+    : `${$nodewidth}px`};
+    height: ${props => Number.isFinite(props.height)
+    ? `${props.height}px`
+    : 'auto'};
+    padding-bottom: 6px;
+    position: relative;
+    user-select: none;
+    line-height: initial;
+    font-family: Arial;
+    &:hover {
+        filter: brightness(1.1);
+    }
+    .title {
+        color: white;
+        font-family: sans-serif;
+        font-size: 18px;
+        padding: 8px;
+    }
+    .output {
+        text-align: right;
+    }
+    .input {
+        text-align: left;
+    }
+    .output-socket {
+        text-align: right;
+        margin-right: -${String($socketsize / 2 + $socketmargin)}px;
+        display: inline-block;
+    }
+    .input-socket {
+        text-align: left;
+        margin-left: -${String($socketsize / 2 + $socketmargin)}px;
+        display: inline-block;
+    }
+    .input-title,.output-title {
+        vertical-align: middle;
+        color: white;
+        display: inline-block;
+        font-family: sans-serif;
+        font-size: 14px;
+        margin: ${String($socketmargin)}px;
+        line-height: ${String($socketsize)}px;
+    }
+    .input-control {
+        z-index: 1;
+        width: calc(100% - ${String($socketsize + 2 * $socketmargin)}px);
+        vertical-align: middle;
+        display: inline-block;
+    }
+    .control {
+        display: block;
+        padding: ${String($socketmargin)}px ${String($socketsize / 2 + $socketmargin)}px;
+    }
+    ${props => props.styles?.(props)}
+`
+
+function sortByIndex<T extends [string, undefined | { index?: number }][]>(entries: T) {
+  entries.sort((a, b) => {
+    const ai = a[1]?.index || 0
+    const bi = b[1]?.index || 0
+    return ai - bi
+  })
 }
 
-export function NodeElement<S extends ClassicScheme>(props: NodeElementProps<S>) {
-  props = mergeProps({width: null, height: null}, props);
+type Props<S extends ClassicScheme> = {
+  data: S['Node'] & NodeExtraData
+  styles?: () => any
+  emit: RenderEmit<S>
+}
 
-  const computeStyles = () => {
-    const {width, height} = props.data;
-    const inlineStyles: JSX.CSSProperties = {
-      width: Number.isFinite(width) ? `${width}px` : "var(--node-width)",
-      height: Number.isFinite(height) ? `${height}px` : "auto",
-    };
-    return props.styles ? {...inlineStyles, ...(props.styles(props) as JSX.CSSProperties)} : inlineStyles;
-  };
+export type NodeComponent<Scheme extends ClassicScheme> = Component<Props<Scheme>>
 
-  const sortByIndex = <T extends [string, undefined | { index?: number }][]>(entries: T) => {
-    return entries.sort((a, b) => {
-      const ai = a[1]?.index || 0;
-      const bi = b[1]?.index || 0;
-      return ai - bi;
-    });
-  };
+export const Node: Component<Props<ClassicScheme>> = <Scheme extends ClassicScheme>(props: Props<Scheme>) => {
+  const inputs = Object.entries(props.data.inputs)
+  const outputs = Object.entries(props.data.outputs)
+  const controls = Object.entries(props.data.controls)
 
-  const inputs = () => {
-    const entries = Object.entries(props.data.inputs || {});
-    return sortByIndex(entries);
-  };
+  // Sort the entries
+  sortByIndex(inputs)
+  sortByIndex(outputs)
+  sortByIndex(controls)
 
-  const outputs = () => {
-    const entries = Object.entries(props.data.outputs || {});
-    return sortByIndex(entries);
-  };
-
-  const controls = () => {
-    const entries = Object.entries(props.data.controls || {});
-    return sortByIndex(entries);
-  };
+  const selected = () => props.data.selected || false
+  const { id, label, width, height } = props.data
 
   return (
-    <div
-      class={`node-element ${props.data.selected ? "selected" : ""}`}
-      data-testid="node"
-      style={computeStyles()}
-    >
-      <div class="title" data-testid="title">
-        {props.data.label}
-      </div>
+      <NodeStyles
+          selected={selected()}
+          width={width}
+          height={height}
+          styles={props.styles}
+          data-testid="node"
+      >
+        <div class="title" data-testid="title">{label}</div>
 
-      {/* Outputs */}
-      <For each={outputs()}>
-        {([key, output]) => (
-          <Show when={output}>
-            <div class="output" id={key} data-testid={`output-${key}`}>
-              <div class="output-title" data-testid="output-title">
-                {output?.label}
+        {/* Outputs */}
+        <For each={outputs}>
+          {([key, output]) => output && (
+              <div class="output" data-testid={`output-${key}`}>
+                <div class="output-title" data-testid="output-title">{output.label}</div>
+                <RefSocket
+                    name="output-socket"
+                    side="output"
+                    socketKey={key}
+                    nodeId={id}
+                    emit={props.emit}
+                    payload={output.socket}
+                    data-testid="output-socket"
+                />
               </div>
-              <span class="output-socket" data-testid="output-socket">
-                <RefElement
-                  data={{
-                    type: "socket",
-                    side: "output",
-                    key,
-                    nodeId: props.data.id,
-                    payload: output?.socket,
-                  }}
-                  emit={props.emit ? props.emit as RenderEmit<ClassicScheme> : undefined}
-                ></RefElement>
-              </span>
-            </div>
-          </Show>
-        )}
-      </For>
+          )}
+        </For>
 
-      {/* Controls */}
-      <For each={controls()}>
-        {([key, control]) => (
-          <Show when={control}>
-            <span class="control" data-testid={`control-${key}`}>
-              <RefElement
-                data={{
-                  type: "control",
-                  payload: control,
-                }}
-                emit={props.emit as RenderEmit<ClassicScheme>}
-              ></RefElement>
-            </span>
-          </Show>
-        )}
-      </For>
+        {/* Controls */}
+        <For each={controls}>
+          {([key, control]) => control && (
+              <RefControl
+                  name="control"
+                  emit={props.emit}
+                  payload={control}
+                  data-testid={`control-${key}`}
+              />
+          )}
+        </For>
 
-      {/* Inputs */}
-      <For each={inputs()}>
-        {([key, input]) => (
-          <Show when={input}>
-            <div class="input" id={key} data-testid={`input-${key}`}>
-              <span class="input-socket" data-testid="input-socket">
-                <RefElement
-                  data={{
-                    type: "socket",
-                    side: "input",
-                    key,
-                    nodeId: props.data.id,
-                    payload: input?.socket,
-                  }}
-                  emit={props.emit as RenderEmit<ClassicScheme>}
-                ></RefElement>
-              </span>
-              <Show when={(!input?.control || !input?.showControl)}>
-                <div class="input-title" data-testid="input-title">
-                  {input?.label}
-                </div>
-              </Show>
-              <Show when={input?.control && input?.showControl}>
-                <span class="control" data-testid="input-control">
-                  <RefElement
-                    data={{
-                      type: "control",
-                      payload: input?.control,
-                    }}
-                    emit={props.emit as RenderEmit<ClassicScheme>}
-                  ></RefElement>
-                </span>
-              </Show>
-            </div>
-          </Show>
-        )}
-      </For>
-    </div>
-  );
+        {/* Inputs */}
+        <For each={inputs}>
+          {([key, input]) => input && (
+              <div class="input" data-testid={`input-${key}`}>
+                <RefSocket
+                    name="input-socket"
+                    side="input"
+                    socketKey={key}
+                    nodeId={id}
+                    emit={props.emit}
+                    payload={input.socket}
+                    data-testid="input-socket"
+                />
+                {input && (!input.control || !input.showControl) && (
+                    <div class="input-title" data-testid="input-title">{input.label}</div>
+                )}
+                {input.control && input.showControl && (
+                    <RefControl
+                        name="input-control"
+                        emit={props.emit}
+                        payload={input.control}
+                        data-testid="input-control"
+                    />
+                )}
+              </div>
+          )}
+        </For>
+      </NodeStyles>
+  )
 }

@@ -1,37 +1,43 @@
-import { JSXElement } from "solid-js";
+import { Component } from 'solid-js'
+import { ClassicPreset } from 'rete'
+import { styled } from 'solid-styled-components'
+import { $socketcolor, $socketmargin, $socketsize } from '../vars'
 
-interface SocketElementProps<T> {
-  data: T | null;
+const StyledSocket = styled('div')`
+    display: inline-block;
+    cursor: pointer;
+    border: 1px solid white;
+    border-radius: ${String($socketsize / 2.0)}px;
+    width: ${String($socketsize)}px;
+    height: ${String($socketsize)}px;
+    vertical-align: middle;
+    background: ${$socketcolor};
+    z-index: 2;
+    box-sizing: border-box;
+    &:hover {
+      border-width: 4px;
+    }
+    &.multiple {
+      border-color: yellow;
+    }
+`
+
+const HoverableWrapper = styled('div')`
+    border-radius: ${String(($socketsize + $socketmargin * 2) / 2.0)}px;
+    padding: ${String($socketmargin)}px;
+    &:hover {
+      border-width: 4px;
+    }
+`
+
+type SocketProps<T extends ClassicPreset.Socket> = {
+    data: T
 }
 
-export function SocketElement<T extends { name?: string }>(props: SocketElementProps<T>): JSXElement {
-  console.log("Rendering SocketElement");
-
-  return (
-    <div
-      class="hoverable"
-      style={{
-        "border-width": "1px",
-        "border-radius": "calc((var(--socket-size) + var(--socket-margin) * 2) / 2)",
-        "padding": "var(--socket-margin)",
-      }}
-    >
-      <div
-        class="styles"
-        style={{
-          "display": "inline-block",
-          "cursor": "pointer",
-          "border": "var(--border-width) solid white",
-          "border-radius": "calc(var(--socket-size) / 2)",
-          "width": "var(--socket-size)",
-          "height": "var(--socket-size)",
-          "vertical-align": "middle",
-          "background": "var(--socket-color)",
-          "z-index": 2,
-          "box-sizing": "border-box",
-        }}
-        title={props.data?.name}
-      />
-    </div>
-  );
+export const Socket: Component<SocketProps<ClassicPreset.Socket>> = (props) => {
+    return (
+        <HoverableWrapper>
+            <StyledSocket title={props.data.name} />
+        </HoverableWrapper>
+    )
 }

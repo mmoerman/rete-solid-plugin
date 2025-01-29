@@ -1,44 +1,64 @@
-import { createMemo } from "solid-js";
-import type { ClassicPreset } from "rete";
+import {Component, createMemo, onMount, ParentProps} from 'solid-js'
+import { ClassicPreset } from 'rete'
+import { styled } from 'solid-styled-components'
+import { useNoDrag } from '../../../shared/drag'
 
-interface ControlElementProps<N extends "text" | "number"> {
-  data: ClassicPreset.InputControl<N> | null;
+const StyledInput = styled('input')<{ styles?: (props: any) => any }>`
+    width: 100%;
+    border-radius: 30px;
+    background-color: white;
+    padding: 2px 6px;
+    border: 1px solid #999;
+    font-size: 110%;
+    box-sizing: border-box;
+    ${props => props.styles?.(props)}
+`
+
+type ControlProps<N extends 'text' | 'number'> = {
+    data: ClassicPreset.InputControl<N>
+    styles?: () => any
 }
 
-export const ControlElement = <N extends 'text' | 'number'>({data}: ControlElementProps<N>) => {
-  console.log("Rendering ControlElement");
+export const Control: Component<ParentProps> = (props) => {
+    let ref!: HTMLElement;
 
-  // Handle the input event
-  const handleInput = (e: InputEvent) => {
-    if (!data) return;
+    // Apply no-drag behavior
+    onMount(() => {
+        if (ref) {
+            useNoDrag(ref)
+        }
+    })
 
-    const target = e.target as HTMLInputElement;
-    const val = data.type === "number" ? +target.value : target.value;
+    return (
+        <span ref={ref}>
+            {props.children}
+        </span>
+    )
 
-    data.setValue(val as typeof data["value"]);
-  };
+}
 
-  // Memoized data to track changes reactively
-  const inputValue = createMemo(() => (data ? data.value : ""));
-  const inputType = createMemo(() => (data ? data.type : "text"));
-  const isReadonly = createMemo(() => (data ? data.readonly : false));
+export const InputControl: Component<ControlProps<'text' | 'number'>> = <N extends 'text' | 'number'>(props: ControlProps<N>) => {
+    // Create memo for value that tracks props.data.value
+    const value = createMemo(() => props.data.value)
 
-  return (
-    <input
-      type={inputType()}
-      value={inputValue()}
-      readonly={isReadonly()}
-      onInput={handleInput}
-      onPointerDown={(e) => e.stopPropagation()}
-      style={{
-        "width": "100%",
-        "border-radius": "30px",
-        "background-color": "white",
-        "padding": "2px 6px",
-        "border": "1px solid #999",
-        "font-size": "110%",
-        "box-sizing": "border-box",
-      }}
-    />
-  );
-};
+    const handleChange = (e: InputEvent) => {
+        const target = e.target as HTMLInputElement
+        const newValue = (props.data.type === 'number'
+            ? +target.value
+            : target.value) as typeof props.data['value']
+
+        props.data.setValue(newValue)
+    }
+
+    return (
+        <Control>
+            <StyledInput
+                value={value()}
+                type={props.data.type}
+                readOnly={props.data.readonly}
+                onInput={handleChange}
+                styles={props.styles}
+            />
+        </Control>
+    )
+}
