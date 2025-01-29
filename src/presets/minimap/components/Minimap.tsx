@@ -81,7 +81,7 @@ export const Minimap: Component<MinimapProps> = (props) => {
         >
             {containerWidth() > 0 && (
                 <For each={props.nodes}>
-                    {(node, i) => (
+                    {(node, _) => (
                         <MiniNode
                             left={scale(node.left)}
                             top={scale(node.top)}

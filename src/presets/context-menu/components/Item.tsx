@@ -1,4 +1,4 @@
-import {Component, createSignal, Show, createUniqueId, ParentProps, JSX} from "solid-js";
+import { Component, createSignal, ParentProps, Show } from "solid-js";
 import { css, styled } from "solid-styled-components";
 import { useDebounce } from "../hooks";
 import { CommonStyle } from "../styles";
