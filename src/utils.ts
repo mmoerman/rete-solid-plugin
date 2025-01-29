@@ -41,7 +41,7 @@ export function useRete<T extends { destroy(): void }>(create: (el: HTMLElement)
     // Setup ref callback
     const setRef = (element: HTMLElement) => {
         ref = element
-        setContainer((prev) => element)
+        setContainer((_) => element)
     }
 
     return [setRef, editor] as const
