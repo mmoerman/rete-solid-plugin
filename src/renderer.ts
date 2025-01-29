@@ -73,6 +73,7 @@ export function getRenderer(props?: { createRoot?: CreateRoot }): Renderer {
             }
           });
         } else {
+          // Note - the below will create noise in the debug logs, may need to remove it at some point.
           console.debug(`Could not dispose of container ${container} as we couldn't find a wrapper for it`)
         }
       }
