@@ -27,7 +27,7 @@ import {
     ConnectionPlugin,
     Presets as ConnectionPresets,
 } from "rete-connection-plugin";
-import { SolidPlugin, Presets, SolidArea2D } from "./rete-plugin";
+import { SolidPlugin, Presets, SolidArea2D } from "solid-rete-plugin";
 
 type Schemes = GetSchemes<
     ClassicPreset.Node,
