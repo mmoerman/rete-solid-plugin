@@ -7,3 +7,4 @@ dist
 
 # Do not push the IDE settings
 .idea
+.npmrc
