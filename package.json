@@ -1,14 +1,21 @@
 {
-  "name": "@ubifile/rete-solidjs-plugin",
-  "version": "0.1.9",
-  "description": "",
+  "name": "rete-solid-plugin",
+  "version": "0.1.10",
+  "description": "A SolidJS plugin for Rete (https://retejs.org/)",
   "scripts": {
     "build": "rm -rf dist && rete build -c rete.config.ts",
     "doc": "rete doc --entries src/index.tsx",
     "lint": "rete lint"
   },
-  "author": "",
+  "author": "Michael Moerman",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mmoerman/rete-solid-plugin.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mmoerman/rete-solid-plugin/issues"
+  },
   "dependencies": {
     "solid-js": "^1.9.3",
     "solid-styled-components": "^0.28.5"
