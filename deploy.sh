@@ -6,4 +6,4 @@
 npm run build
 cp .npmrc dist
 cd dist
-npm publish
+npm publish --access public --otp $1
