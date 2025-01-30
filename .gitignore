@@ -4,3 +4,6 @@ dist
 
 # Mac's annoying DS_Store
 .DS_Store
+
+# Do not push the IDE settings
+.idea
