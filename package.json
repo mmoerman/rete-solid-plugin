@@ -1,5 +1,5 @@
 {
-  "name": "rete-plugin-solid",
+  "name": "solid-rete-plugin",
   "version": "0.1.10",
   "description": "A SolidJS plugin for Rete (https://retejs.org/)",
   "scripts": {
