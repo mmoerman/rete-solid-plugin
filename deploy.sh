@@ -4,6 +4,12 @@
 # which seems to be the intention from how rete bundles things.
 #
 npm run build
-cp .npmrc dist
+if [ -f .npmrc ]; then
+    cp .npmrc dist
+fi
 cd dist
-npm publish --access public --otp $1
+if [ -n "$1" ]; then
+    npm publish --access public --otp $1
+else
+    npm publish
+fi
