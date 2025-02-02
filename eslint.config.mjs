@@ -1,6 +1,13 @@
-import tseslint from 'typescript-eslint';
-import configs from 'rete-cli/configs/eslint.mjs';
+import tsParser from "@typescript-eslint/parser";
 
-export default tseslint.config (
-//  ...configs,
-)
+export default [
+    {
+        files: ["src/**/*.ts", "src/**/*.tsx"],
+        languageOptions: {
+            parser: tsParser,
+        },
+        rules: {
+            "@typescript-eslint/no-explicit-any": "off",
+        },
+    },
+];
